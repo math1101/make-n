@@ -13,21 +13,22 @@
       user-select: none;
       -webkit-user-select: none;
     }
+    
+    /* ボタンタップ時のアニメーション（全ボタン共通でズレない設計） */
     .tap-target {
-      transition: background-color 0.15s ease, border-color 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.1s ease;
       cursor: pointer;
     }
     .tap-target:active {
-      transform: scale(0.92) translate(-50%, 0) !important; /* 上ボタンの位置ずれ防止 */
-      background-color: #e0f2fe;
+      opacity: 0.75;
+      background-color: #e0f2fe !important;
+      border-color: #3b82f6 !important;
     }
-    /* 上ボタンのセンタリング維持 */
+
+    /* 上ボタンのセンタリング固定 */
     .target-top {
       left: 50%;
       transform: translateX(-50%);
-    }
-    .target-top:active {
-      transform: translateX(-50%) scale(0.92);
     }
   </style>
 </head>
@@ -85,10 +86,10 @@
         </div>
       </div>
 
-      <!-- フィールド（レイアウト固定） -->
+      <!-- フィールド（完全固定レイアウト） -->
       <div class="relative w-72 h-72 mx-auto my-auto flex-shrink-0">
         
-        <!-- 上（TOP）ターゲット：クラス target-top で位置固定 -->
+        <!-- 上（TOP）ターゲット -->
         <button onclick="handleTap('top')" data-position="top" class="tap-target target-top absolute top-0 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
         </button>
@@ -110,7 +111,7 @@
 
       </div>
 
-      <!-- 正誤フィードバック表示（絶対配置にしてレイアウト影響を排除） -->
+      <!-- 正誤フィードバック表示（絶対配置） -->
       <div class="h-8 relative w-full flex items-center justify-center">
         <div id="feedback" class="absolute inset-0 flex items-center justify-center text-base font-bold"></div>
       </div>
