@@ -13,25 +13,13 @@
       user-select: none;
       -webkit-user-select: none;
     }
-    .draggable {
-      cursor: grab;
-      transition: transform 0.1s ease;
+    .tap-target {
+      transition: all 0.15s ease;
+      cursor: pointer;
     }
-    .draggable:active {
-      cursor: grabbing;
-    }
-    .dragging {
-      opacity: 0.8;
-      transform: scale(1.1);
-      z-index: 50;
-    }
-    .drop-target {
-      transition: all 0.2s ease;
-    }
-    .drop-target.drag-over {
-      transform: scale(1.15);
-      border-color: #3b82f6;
-      background-color: #eff6ff;
+    .tap-target:active {
+      transform: scale(0.92);
+      background-color: #e0f2fe;
     }
   </style>
 </head>
@@ -42,7 +30,7 @@
     <!-- ヘッダー -->
     <div>
       <h1 class="text-2xl font-bold text-slate-700 tracking-wide">数字合わせゲーム</h1>
-      <p class="text-xs text-slate-400 mt-1">真ん中の数字を重ねて目標の数を作ろう！</p>
+      <p class="text-xs text-slate-400 mt-1">合わせて目標の数になる数字をタップしよう！</p>
     </div>
 
     <!-- スタート画面 -->
@@ -60,7 +48,7 @@
       </div>
 
       <p class="text-sm text-slate-600 leading-relaxed">
-        中央の数字をドラッグして、<br>足して「<span id="display-target-num" class="font-bold text-blue-600">10</span>」になる数字に重ねてください。<br>全10問です！
+        中央の数字と足して「<span id="display-target-num" class="font-bold text-blue-600">10</span>」になる<br>周囲の数字をタップしてください。<br>全10問です！
       </p>
 
       <button onclick="startGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
@@ -80,26 +68,26 @@
         <span id="timer">0.0 秒</span>
       </div>
 
-      <!-- フィールド（3箇所のターゲットと中央のドラッグ要素） -->
+      <!-- フィールド（3箇所のタップターゲットと中央の数字） -->
       <div class="relative w-72 h-72 mx-auto flex items-center justify-center my-auto">
         
         <!-- 上（TOP）ターゲット -->
-        <div data-position="top" class="drop-target absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
+        <button onclick="handleTap('top')" data-position="top" class="tap-target absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
-        </div>
+        </button>
 
         <!-- 左下（BOTTOM LEFT）ターゲット -->
-        <div data-position="bottom-left" class="drop-target absolute bottom-2 left-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
+        <button onclick="handleTap('bottom-left')" data-position="bottom-left" class="tap-target absolute bottom-2 left-2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
-        </div>
+        </button>
 
         <!-- 右下（BOTTOM RIGHT）ターゲット -->
-        <div data-position="bottom-right" class="drop-target absolute bottom-2 right-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
+        <button onclick="handleTap('bottom-right')" data-position="bottom-right" class="tap-target absolute bottom-2 right-2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
-        </div>
+        </button>
 
-        <!-- 中央の数字（ドラッグ可能） -->
-        <div id="center-node" class="draggable absolute w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20 cursor-grab active:cursor-grabbing">
+        <!-- 中央の数字（表示のみ） -->
+        <div id="center-node" class="absolute w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
           <span id="center-val">?</span>
         </div>
 
@@ -139,6 +127,7 @@
     let centerNumber = 0;
     let targetValues = {};
     let correctAnswerPosition = '';
+    let isAnswering = false; // 連打防止フラグ
     
     let startTime = 0;
     let timerInterval = null;
@@ -147,13 +136,11 @@
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
     const resultScreen = document.getElementById('result-screen');
-    const centerNode = document.getElementById('center-node');
     const centerVal = document.getElementById('center-val');
     const questionNum = document.getElementById('question-num');
     const progressBar = document.getElementById('progress-bar');
     const timerElem = document.getElementById('timer');
     const feedbackElem = document.getElementById('feedback');
-    const dropTargets = document.querySelectorAll('.drop-target');
     const displayTargetNum = document.getElementById('display-target-num');
     const gameTargetBadge = document.getElementById('game-target-badge');
 
@@ -177,6 +164,7 @@
     function startGame() {
       currentQuestion = 1;
       correctCount = 0;
+      isAnswering = false;
       gameTargetBadge.textContent = targetGoal;
       
       startScreen.classList.add('hidden');
@@ -209,11 +197,10 @@
         return;
       }
 
-      // 状態リセット
+      isAnswering = false;
       feedbackElem.textContent = '';
       questionNum.textContent = currentQuestion;
       progressBar.style.width = `${(currentQuestion / TOTAL_QUESTIONS) * 100}%`;
-      resetCenterNodePosition();
 
       // 目標数値に応じて中央の数字を生成
       generateNumbersForTarget(targetGoal);
@@ -262,7 +249,7 @@
     function generateNumbersForTarget(goal) {
       if (goal === 90) {
         // 90モード: 5〜85（5刻み）
-        const stepCount = (85 / 5); // 17通り
+        const stepCount = (85 / 5);
         const randIndex = Math.floor(Math.random() * stepCount) + 1;
         centerNumber = randIndex * 5;
       } else {
@@ -272,8 +259,11 @@
       centerVal.textContent = centerNumber;
     }
 
-    // 回答判定
-    function checkAnswer(chosenPosition) {
+    // タップ回答処理
+    function handleTap(chosenPosition) {
+      if (isAnswering) return; // 回答アニメーション中の重複タップ防止
+      isAnswering = true;
+
       const chosenVal = targetValues[chosenPosition];
       const isCorrect = (centerNumber + chosenVal === targetGoal);
 
@@ -286,10 +276,11 @@
         feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} = ${centerNumber + chosenVal})`;
       }
 
+      // 次の問題へ移行する待ち時間を少し短縮 (700ms -> 450ms) してテンポアップ
       setTimeout(() => {
         currentQuestion++;
         nextQuestion();
-      }, 700);
+      }, 450);
     }
 
     // ゲーム終了
@@ -311,101 +302,6 @@
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
-    }
-
-    // ドラッグ要素の位置初期化
-    function resetCenterNodePosition() {
-      centerNode.style.transform = 'translate(0px, 0px)';
-      centerNode.style.top = '';
-      centerNode.style.left = '';
-    }
-
-    /* --- ドラッグ＆ドロップ（マウス＆タッチ対応） --- */
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let currentX = 0, currentY = 0;
-
-    centerNode.addEventListener('mousedown', dragStart);
-    centerNode.addEventListener('touchstart', dragStart, { passive: false });
-
-    window.addEventListener('mousemove', dragMove);
-    window.addEventListener('touchmove', dragMove, { passive: false });
-
-    window.addEventListener('mouseup', dragEnd);
-    window.addEventListener('touchend', dragEnd);
-
-    function dragStart(e) {
-      isDragging = true;
-      centerNode.classList.add('dragging');
-
-      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-      startX = clientX - currentX;
-      startY = clientY - currentY;
-    }
-
-    function dragMove(e) {
-      if (!isDragging) return;
-      e.preventDefault();
-
-      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-      currentX = clientX - startX;
-      currentY = clientY - startY;
-
-      centerNode.style.transform = `translate(${currentX}px, ${currentY}px)`;
-
-      const centerRect = centerNode.getBoundingClientRect();
-      dropTargets.forEach(target => {
-        const targetRect = target.getBoundingClientRect();
-        if (isOverlapping(centerRect, targetRect)) {
-          target.classList.add('drag-over');
-        } else {
-          target.classList.remove('drag-over');
-        }
-      });
-    }
-
-    function dragEnd(e) {
-      if (!isDragging) return;
-      isDragging = false;
-      centerNode.classList.remove('dragging');
-
-      const centerRect = centerNode.getBoundingClientRect();
-      let droppedTarget = null;
-
-      dropTargets.forEach(target => {
-        const targetRect = target.getBoundingClientRect();
-        if (isOverlapping(centerRect, targetRect)) {
-          droppedTarget = target;
-        }
-        target.classList.remove('drag-over');
-      });
-
-      if (droppedTarget) {
-        const position = droppedTarget.getAttribute('data-position');
-        currentX = 0;
-        currentY = 0;
-        checkAnswer(position);
-      } else {
-        currentX = 0;
-        currentY = 0;
-        resetCenterNodePosition();
-      }
-    }
-
-    function isOverlapping(rect1, rect2) {
-      const center1X = rect1.left + rect1.width / 2;
-      const center1Y = rect1.top + rect1.height / 2;
-
-      return (
-        center1X >= rect2.left &&
-        center1X <= rect2.right &&
-        center1Y >= rect2.top &&
-        center1Y <= rect2.bottom
-      );
     }
   </script>
 </body>
