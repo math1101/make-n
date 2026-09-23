@@ -14,7 +14,7 @@
       -webkit-user-select: none;
     }
     
-    /* タップ時の視覚効果（要素の位置移動 transform は一切使用しない） */
+    /* タップ時の視覚効果 */
     .tap-target {
       transition: background-color 0.1s ease, border-color 0.1s ease, opacity 0.1s ease;
       cursor: pointer;
@@ -80,27 +80,28 @@
         </div>
       </div>
 
-      <!-- フィールド（絶対座標で完全位置固定） -->
-      <div class="relative w-72 h-72 mx-auto my-auto flex-shrink-0">
+      <!-- フィールド（中央に問題数値、下に2行2列の4択ボタン） -->
+      <div class="my-auto flex flex-col items-center justify-center space-y-6">
         
-        <!-- 上（TOP）ターゲット -->
-        <button onclick="handleTap('top')" data-position="top" class="tap-target absolute top-0 left-[96px] w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
-          <span class="target-val">?</span>
-        </button>
-
-        <!-- 左下（BOTTOM LEFT）ターゲット -->
-        <button onclick="handleTap('bottom-left')" data-position="bottom-left" class="tap-target absolute bottom-2 left-2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
-          <span class="target-val">?</span>
-        </button>
-
-        <!-- 右下（BOTTOM RIGHT）ターゲット -->
-        <button onclick="handleTap('bottom-right')" data-position="bottom-right" class="tap-target absolute bottom-2 right-2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
-          <span class="target-val">?</span>
-        </button>
-
-        <!-- 中央の数字（表示のみ） -->
-        <div id="center-node" class="absolute top-[96px] left-[96px] w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
+        <!-- 中央の問題表示エリア -->
+        <div id="center-node" class="w-24 h-24 bg-blue-500 text-white rounded-3xl flex items-center justify-center text-4xl font-black shadow-xl">
           <span id="center-val">?</span>
+        </div>
+
+        <!-- 下部の2行2列（2x2）4択ボタンエリア -->
+        <div class="grid grid-cols-2 gap-3 w-64">
+          <button onclick="handleTap(0)" data-index="0" class="tap-target h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+            <span class="target-val">?</span>
+          </button>
+          <button onclick="handleTap(1)" data-index="1" class="tap-target h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+            <span class="target-val">?</span>
+          </button>
+          <button onclick="handleTap(2)" data-index="2" class="tap-target h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+            <span class="target-val">?</span>
+          </button>
+          <button onclick="handleTap(3)" data-index="3" class="tap-target h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+            <span class="target-val">?</span>
+          </button>
         </div>
 
       </div>
@@ -149,8 +150,8 @@
     let currentQuestion = 1;
     let correctCount = 0;
     let centerNumber = 0;
-    let targetValues = {};
-    let correctAnswerPosition = '';
+    let targetValues = []; // 4つの選択肢の配列 [val0, val1, val2, val3]
+    let correctAnswerIndex = 0;
     let isAnswering = false;
     
     let startTime = 0;
@@ -297,9 +298,8 @@
       generateNumbersForTarget(targetGoal);
 
       const correctVal = targetGoal - centerNumber;
-      const positions = ['top', 'bottom-left', 'bottom-right'];
-      correctAnswerPosition = positions[Math.floor(Math.random() * positions.length)];
 
+      // ダミー数値候補（正解以外の値）を生成
       let dummyCandidates = [];
       if (targetGoal === 90) {
         for (let i = 5; i < 90; i += 5) {
@@ -312,22 +312,23 @@
       }
       shuffleArray(dummyCandidates);
 
-      targetValues = {};
+      // 4択を作成（正解1つ＋ダミー3つ）
+      correctAnswerIndex = Math.floor(Math.random() * 4);
+      targetValues = [];
       let dummyIdx = 0;
 
-      positions.forEach(pos => {
-        const targetElem = document.querySelector(`[data-position="${pos}"]`);
-        const valSpan = targetElem.querySelector('.target-val');
-        
-        if (pos === correctAnswerPosition) {
-          targetValues[pos] = correctVal;
-          valSpan.textContent = correctVal;
+      for (let i = 0; i < 4; i++) {
+        if (i === correctAnswerIndex) {
+          targetValues.push(correctVal);
         } else {
-          const dummyVal = dummyCandidates[dummyIdx++];
-          targetValues[pos] = dummyVal;
-          valSpan.textContent = dummyVal;
+          targetValues.push(dummyCandidates[dummyIdx++]);
         }
-      });
+
+        // 画面上のボタンに数値を反映
+        const btnElem = document.querySelector(`[data-index="${i}"]`);
+        const valSpan = btnElem.querySelector('.target-val');
+        valSpan.textContent = targetValues[i];
+      }
     }
 
     function generateNumbersForTarget(goal) {
@@ -342,12 +343,12 @@
     }
 
     // タップ回答処理
-    function handleTap(chosenPosition) {
+    function handleTap(chosenIndex) {
       if (isAnswering) return;
       isAnswering = true;
 
-      const chosenVal = targetValues[chosenPosition];
-      const isCorrect = (centerNumber + chosenVal === targetGoal);
+      const chosenVal = targetValues[chosenIndex];
+      const isCorrect = (chosenIndex === correctAnswerIndex);
 
       if (isCorrect) {
         correctCount++;
