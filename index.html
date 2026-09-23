@@ -14,21 +14,15 @@
       -webkit-user-select: none;
     }
     
-    /* ボタンタップ時のアニメーション（全ボタン共通でズレない設計） */
+    /* タップ時の視覚効果（要素の位置移動 transform は一切使用しない） */
     .tap-target {
-      transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.1s ease;
+      transition: background-color 0.1s ease, border-color 0.1s ease, opacity 0.1s ease;
       cursor: pointer;
     }
     .tap-target:active {
-      opacity: 0.75;
+      opacity: 0.7;
       background-color: #e0f2fe !important;
       border-color: #3b82f6 !important;
-    }
-
-    /* 上ボタンのセンタリング固定 */
-    .target-top {
-      left: 50%;
-      transform: translateX(-50%);
     }
   </style>
 </head>
@@ -86,11 +80,11 @@
         </div>
       </div>
 
-      <!-- フィールド（完全固定レイアウト） -->
+      <!-- フィールド（絶対座標で完全に位置固定） -->
       <div class="relative w-72 h-72 mx-auto my-auto flex-shrink-0">
         
-        <!-- 上（TOP）ターゲット -->
-        <button onclick="handleTap('top')" data-position="top" class="tap-target target-top absolute top-0 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+        <!-- 上（TOP）ターゲット：left: 96px (288pxの1/2からボタン幅80pxの半分40pxを引いた絶対位置) -->
+        <button onclick="handleTap('top')" data-position="top" class="tap-target absolute top-0 left-[96px] w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
         </button>
 
@@ -104,14 +98,14 @@
           <span class="target-val">?</span>
         </button>
 
-        <!-- 中央の数字（表示のみ） -->
-        <div id="center-node" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
+        <!-- 中央の数字（表示のみ）：top: 96px, left: 96px -->
+        <div id="center-node" class="absolute top-[96px] left-[96px] w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
           <span id="center-val">?</span>
         </div>
 
       </div>
 
-      <!-- 正誤フィードバック表示（絶対配置） -->
+      <!-- 正誤フィードバック表示 -->
       <div class="h-8 relative w-full flex items-center justify-center">
         <div id="feedback" class="absolute inset-0 flex items-center justify-center text-base font-bold"></div>
       </div>
