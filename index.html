@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>合わせて10</title>
+  <title>数字合わせゲーム</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -37,36 +37,46 @@
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
 
-  <div class="bg-white rounded-3xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center relative overflow-hidden min-h-[520px] flex flex-col justify-between">
+  <div class="bg-white rounded-3xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center relative overflow-hidden min-h-[540px] flex flex-col justify-between">
     
     <!-- ヘッダー -->
     <div>
-      <h1 class="text-2xl font-bold text-slate-700 tracking-wide">合わせて 10</h1>
-      <p class="text-xs text-slate-400 mt-1">真ん中の数字を重ねて10を作ろう！</p>
+      <h1 class="text-2xl font-bold text-slate-700 tracking-wide">数字合わせゲーム</h1>
+      <p class="text-xs text-slate-400 mt-1">真ん中の数字を重ねて目標の数を作ろう！</p>
     </div>
 
     <!-- スタート画面 -->
     <div id="start-screen" class="my-auto space-y-6">
-      <div class="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-extrabold mx-auto shadow-lg animate-bounce">
-        10
+      
+      <!-- モード選択 -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">目指す数字を選択</label>
+        <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto" id="target-selector">
+          <button onclick="selectTarget(10)" id="btn-10" class="target-btn py-3 border-2 border-blue-500 bg-blue-50 text-blue-600 font-black text-xl rounded-xl transition duration-150">10</button>
+          <button onclick="selectTarget(60)" id="btn-60" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">60 <span class="text-xs font-normal text-slate-400">(分)</span></button>
+          <button onclick="selectTarget(90)" id="btn-90" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">90 <span class="text-xs font-normal text-slate-400">(角)</span></button>
+          <button onclick="selectTarget(100)" id="btn-100" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">100</button>
+        </div>
       </div>
+
       <p class="text-sm text-slate-600 leading-relaxed">
-        中央の数字をドラッグして、<br>足して「10」になる数字に重ねてください。<br>全10問です！
+        中央の数字をドラッグして、<br>足して「<span id="display-target-num" class="font-bold text-blue-600">10</span>」になる数字に重ねてください。<br>全10問です！
       </p>
+
       <button onclick="startGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
         スタート
       </button>
     </div>
 
     <!-- ゲーム画面 -->
-    <div id="game-screen" class="hidden my-auto flex-1 flex flex-col justify-between py-4">
+    <div id="game-screen" class="hidden my-auto flex-1 flex flex-col justify-between py-2">
       <!-- スコア＆進捗バー -->
-      <div class="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden">
+      <div class="w-full bg-slate-100 rounded-full h-3 mb-3 overflow-hidden">
         <div id="progress-bar" class="bg-blue-500 h-3 rounded-full transition-all duration-300" style="width: 10%"></div>
       </div>
       
       <div class="flex justify-between items-center text-sm font-semibold text-slate-500 px-2 mb-2">
-        <span>問題: <strong id="question-num" class="text-blue-600 text-base">1</strong> / 10</span>
+        <span>目標: <strong id="game-target-badge" class="text-blue-600 text-base">10</strong> | 問題: <strong id="question-num" class="text-blue-600 text-base">1</strong> / 10</span>
         <span id="timer">0.0 秒</span>
       </div>
 
@@ -74,29 +84,29 @@
       <div class="relative w-72 h-72 mx-auto flex items-center justify-center my-auto">
         
         <!-- 上（TOP）ターゲット -->
-        <div data-position="top" class="drop-target absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-3xl font-extrabold text-slate-700 shadow-inner">
+        <div data-position="top" class="drop-target absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
           <span class="target-val">?</span>
         </div>
 
         <!-- 左下（BOTTOM LEFT）ターゲット -->
-        <div data-position="bottom-left" class="drop-target absolute bottom-2 left-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-3xl font-extrabold text-slate-700 shadow-inner">
+        <div data-position="bottom-left" class="drop-target absolute bottom-2 left-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
           <span class="target-val">?</span>
         </div>
 
         <!-- 右下（BOTTOM RIGHT）ターゲット -->
-        <div data-position="bottom-right" class="drop-target absolute bottom-2 right-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-3xl font-extrabold text-slate-700 shadow-inner">
+        <div data-position="bottom-right" class="drop-target absolute bottom-2 right-2 w-20 h-20 rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-inner">
           <span class="target-val">?</span>
         </div>
 
         <!-- 中央の数字（ドラッグ可能） -->
-        <div id="center-node" class="draggable absolute w-22 h-22 w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-4xl font-black shadow-xl z-20 cursor-grab active:cursor-grabbing">
+        <div id="center-node" class="draggable absolute w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20 cursor-grab active:cursor-grabbing">
           <span id="center-val">?</span>
         </div>
 
       </div>
 
       <!-- 正誤フィードバック表示 -->
-      <div id="feedback" class="h-8 text-lg font-bold flex items-center justify-center"></div>
+      <div id="feedback" class="h-8 text-base font-bold flex items-center justify-center"></div>
     </div>
 
     <!-- 結果画面 -->
@@ -104,6 +114,9 @@
       <div class="text-slate-500 text-sm font-semibold">クリア！</div>
       
       <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+        <div class="text-xs text-blue-500 font-bold tracking-widest uppercase mb-1">モード</div>
+        <div id="final-mode" class="text-lg font-black text-slate-700 mb-3">目標：10</div>
+
         <div class="text-xs text-blue-500 font-bold tracking-widest uppercase mb-1">タイム</div>
         <div id="final-time" class="text-4xl font-black text-blue-600 mb-4">0.00 秒</div>
         
@@ -111,7 +124,7 @@
         <div id="final-score" class="text-2xl font-extrabold text-slate-700">10 / 10 問</div>
       </div>
 
-      <button onclick="startGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
+      <button onclick="backToStart()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
         もう一度遊ぶ
       </button>
     </div>
@@ -120,10 +133,11 @@
 
   <script>
     const TOTAL_QUESTIONS = 10;
+    let targetGoal = 10; // デフォルトは10
     let currentQuestion = 1;
     let correctCount = 0;
     let centerNumber = 0;
-    let targetValues = {}; // { top: X, 'bottom-left': Y, 'bottom-right': Z }
+    let targetValues = {};
     let correctAnswerPosition = '';
     
     let startTime = 0;
@@ -140,11 +154,30 @@
     const timerElem = document.getElementById('timer');
     const feedbackElem = document.getElementById('feedback');
     const dropTargets = document.querySelectorAll('.drop-target');
+    const displayTargetNum = document.getElementById('display-target-num');
+    const gameTargetBadge = document.getElementById('game-target-badge');
+
+    // 目標の数値を選択
+    function selectTarget(num) {
+      targetGoal = num;
+      displayTargetNum.textContent = num;
+      
+      // ボタンのスタイル更新
+      document.querySelectorAll('.target-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600', 'font-black');
+        btn.classList.add('border-slate-200', 'text-slate-600', 'font-bold');
+      });
+
+      const selectedBtn = document.getElementById(`btn-${num}`);
+      selectedBtn.classList.remove('border-slate-200', 'text-slate-600', 'font-bold');
+      selectedBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-600', 'font-black');
+    }
 
     // ゲーム開始
     function startGame() {
       currentQuestion = 1;
       correctCount = 0;
+      gameTargetBadge.textContent = targetGoal;
       
       startScreen.classList.add('hidden');
       resultScreen.classList.add('hidden');
@@ -155,6 +188,12 @@
       timerInterval = setInterval(updateTimer, 100);
 
       nextQuestion();
+    }
+
+    // スタート画面に戻る
+    function backToStart() {
+      resultScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
     }
 
     // タイマー更新
@@ -176,19 +215,29 @@
       progressBar.style.width = `${(currentQuestion / TOTAL_QUESTIONS) * 100}%`;
       resetCenterNodePosition();
 
-      // 中央の数字 (1〜9)
-      centerNumber = Math.floor(Math.random() * 9) + 1;
-      centerVal.textContent = centerNumber;
+      // 目標数値に応じて中央の数字を生成
+      generateNumbersForTarget(targetGoal);
 
-      // 正解の数字 (足して10になる数字)
-      const correctVal = 10 - centerNumber;
+      // 正解の数字
+      const correctVal = targetGoal - centerNumber;
 
       // 3つの位置 ['top', 'bottom-left', 'bottom-right']
       const positions = ['top', 'bottom-left', 'bottom-right'];
       correctAnswerPosition = positions[Math.floor(Math.random() * positions.length)];
 
-      // ダミーの数字を作る (正解と重複しない1〜9)
-      const dummyCandidates = [1,2,3,4,5,6,7,8,9].filter(n => n !== correctVal);
+      // ダミー数値候補の作成（正解以外の値）
+      let dummyCandidates = [];
+      if (targetGoal === 90) {
+        // 90モード: 5刻みのダミー値
+        for (let i = 5; i < 90; i += 5) {
+          if (i !== correctVal) dummyCandidates.push(i);
+        }
+      } else {
+        // 10, 60, 100モード: 1刻みのダミー値
+        for (let i = 1; i < targetGoal; i++) {
+          if (i !== correctVal) dummyCandidates.push(i);
+        }
+      }
       shuffleArray(dummyCandidates);
 
       targetValues = {};
@@ -209,18 +258,32 @@
       });
     }
 
+    // 目標値に応じた中央の数字をセット
+    function generateNumbersForTarget(goal) {
+      if (goal === 90) {
+        // 90モード: 5〜85（5刻み）
+        const stepCount = (85 / 5); // 17通り
+        const randIndex = Math.floor(Math.random() * stepCount) + 1;
+        centerNumber = randIndex * 5;
+      } else {
+        // 10, 60, 100モード: 1〜(goal - 1)の1刻み
+        centerNumber = Math.floor(Math.random() * (goal - 1)) + 1;
+      }
+      centerVal.textContent = centerNumber;
+    }
+
     // 回答判定
     function checkAnswer(chosenPosition) {
       const chosenVal = targetValues[chosenPosition];
-      const isCorrect = (centerNumber + chosenVal === 10);
+      const isCorrect = (centerNumber + chosenVal === targetGoal);
 
       if (isCorrect) {
         correctCount++;
-        feedbackElem.className = "h-8 text-lg font-bold flex items-center justify-center text-emerald-500 animate-bounce";
+        feedbackElem.className = "h-8 text-base font-bold flex items-center justify-center text-emerald-500 animate-bounce";
         feedbackElem.textContent = "◯ せいかい！";
       } else {
-        feedbackElem.className = "h-8 text-lg font-bold flex items-center justify-center text-rose-500";
-        feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} =${centerNumber + chosenVal})`;
+        feedbackElem.className = "h-8 text-base font-bold flex items-center justify-center text-rose-500";
+        feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} = ${centerNumber + chosenVal})`;
       }
 
       setTimeout(() => {
@@ -237,8 +300,9 @@
       gameScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
 
+      document.getElementById('final-mode').textContent = `目標：${targetGoal}`;
       document.getElementById('final-time').textContent = `${totalTime} 秒`;
-      document.getElementById('final-score').textContent = `${correctCount} /${TOTAL_QUESTIONS} 問`;
+      document.getElementById('final-score').textContent = `${correctCount} / ${TOTAL_QUESTIONS} 問`;
     }
 
     // 配列シャッフル関数
@@ -256,12 +320,11 @@
       centerNode.style.left = '';
     }
 
-    /* --- ドラッグ＆ドロップ（マウス＆タッチ対応）の処理 --- */
+    /* --- ドラッグ＆ドロップ（マウス＆タッチ対応） --- */
     let isDragging = false;
     let startX = 0, startY = 0;
     let currentX = 0, currentY = 0;
 
-    // イベントリスナー設定
     centerNode.addEventListener('mousedown', dragStart);
     centerNode.addEventListener('touchstart', dragStart, { passive: false });
 
@@ -292,9 +355,8 @@
       currentX = clientX - startX;
       currentY = clientY - startY;
 
-      centerNode.style.transform = `translate(${currentX}px,${currentY}px)`;
+      centerNode.style.transform = `translate(${currentX}px, ${currentY}px)`;
 
-      // ターゲットとの重なり判定（ハイライト表示）
       const centerRect = centerNode.getBoundingClientRect();
       dropTargets.forEach(target => {
         const targetRect = target.getBoundingClientRect();
@@ -328,14 +390,12 @@
         currentY = 0;
         checkAnswer(position);
       } else {
-        // 重ならなかった場合は元の場所に戻す
         currentX = 0;
         currentY = 0;
         resetCenterNodePosition();
       }
     }
 
-    // 2つの要素が重なっているか判定（中心点がエリア内に入ったか）
     function isOverlapping(rect1, rect2) {
       const center1X = rect1.left + rect1.width / 2;
       const center1Y = rect1.top + rect1.height / 2;
