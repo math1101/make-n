@@ -80,10 +80,10 @@
         </div>
       </div>
 
-      <!-- フィールド（絶対座標で完全に位置固定） -->
+      <!-- フィールド（絶対座標で完全位置固定） -->
       <div class="relative w-72 h-72 mx-auto my-auto flex-shrink-0">
         
-        <!-- 上（TOP）ターゲット：left: 96px (288pxの1/2からボタン幅80pxの半分40pxを引いた絶対位置) -->
+        <!-- 上（TOP）ターゲット -->
         <button onclick="handleTap('top')" data-position="top" class="tap-target absolute top-0 left-[96px] w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
         </button>
@@ -98,7 +98,7 @@
           <span class="target-val">?</span>
         </button>
 
-        <!-- 中央の数字（表示のみ）：top: 96px, left: 96px -->
+        <!-- 中央の数字（表示のみ） -->
         <div id="center-node" class="absolute top-[96px] left-[96px] w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
           <span id="center-val">?</span>
         </div>
@@ -156,6 +156,67 @@
     let startTime = 0;
     let timerInterval = null;
 
+    // Web Audio APIコンテキスト
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // 正解音（ピポン♪）
+    function playCorrectSound() {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(523.25, now); // C5
+      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(783.99, now + 0.1); // G5
+      gain2.gain.setValueAtTime(0.3, now + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start(now + 0.1);
+      osc2.stop(now + 0.35);
+    }
+
+    // 不正解音（ブブー）
+    function playWrongSound() {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.setValueAtTime(100, now + 0.15);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.35);
+    }
+
     // DOM要素
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -190,6 +251,7 @@
 
     // ゲーム開始
     function startGame() {
+      initAudio();
       currentQuestion = 1;
       correctCount = 0;
       isAnswering = false;
@@ -289,9 +351,11 @@
 
       if (isCorrect) {
         correctCount++;
+        playCorrectSound();
         feedbackElem.className = "absolute inset-0 flex items-center justify-center text-base font-bold text-emerald-500";
         feedbackElem.textContent = "◯ せいかい！";
       } else {
+        playWrongSound();
         feedbackElem.className = "absolute inset-0 flex items-center justify-center text-base font-bold text-rose-500";
         feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} = ${centerNumber + chosenVal})`;
       }
