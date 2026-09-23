@@ -25,7 +25,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
 
-  <div class="bg-white rounded-3xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center relative overflow-hidden min-h-[540px] flex flex-col justify-between">
+  <div class="bg-white rounded-3xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center relative overflow-hidden min-h-[560px] flex flex-col justify-between">
     
     <!-- ヘッダー -->
     <div>
@@ -34,24 +34,31 @@
     </div>
 
     <!-- スタート画面 -->
-    <div id="start-screen" class="my-auto space-y-6">
+    <div id="start-screen" class="my-auto space-y-5 py-2">
       
       <!-- モード選択 -->
       <div>
         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">目指す数字を選択</label>
-        <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto" id="target-selector">
-          <button onclick="selectTarget(10)" id="btn-10" class="target-btn py-3 border-2 border-blue-500 bg-blue-50 text-blue-600 font-black text-xl rounded-xl transition duration-150">10</button>
-          <button onclick="selectTarget(60)" id="btn-60" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">60 <span class="text-xs font-normal text-slate-400">(分)</span></button>
-          <button onclick="selectTarget(90)" id="btn-90" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">90 <span class="text-xs font-normal text-slate-400">(角)</span></button>
-          <button onclick="selectTarget(100)" id="btn-100" class="target-btn py-3 border-2 border-slate-200 text-slate-600 font-bold text-xl rounded-xl transition duration-150">100</button>
+        <div class="grid grid-cols-2 gap-2.5 max-w-xs mx-auto" id="target-selector">
+          <button onclick="selectTarget(10)" id="btn-10" class="target-btn py-2.5 border-2 border-blue-500 bg-blue-50 text-blue-600 font-black text-lg rounded-xl transition duration-150">10</button>
+          <button onclick="selectTarget(60)" id="btn-60" class="target-btn py-2.5 border-2 border-slate-200 text-slate-600 font-bold text-lg rounded-xl transition duration-150">60 <span class="text-xs font-normal text-slate-400">(分)</span></button>
+          <button onclick="selectTarget(90)" id="btn-90" class="target-btn py-2.5 border-2 border-slate-200 text-slate-600 font-bold text-lg rounded-xl transition duration-150">90 <span class="text-xs font-normal text-slate-400">(角)</span></button>
+          <button onclick="selectTarget(100)" id="btn-100" class="target-btn py-2.5 border-2 border-slate-200 text-slate-600 font-bold text-lg rounded-xl transition duration-150">100</button>
         </div>
       </div>
 
-      <p class="text-sm text-slate-600 leading-relaxed">
-        中央の数字と足して「<span id="display-target-num" class="font-bold text-blue-600">10</span>」になる<br>周囲の数字をタップしてください。<br>全10問です！
-      </p>
+      <!-- ランキング表示エリア -->
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100 max-w-xs mx-auto">
+        <div class="flex justify-between items-center mb-1 px-1">
+          <span class="text-xs font-bold text-slate-500">🏆 「<span id="ranking-mode-title">10</span>」 ベストタイム</span>
+          <button onclick="resetCurrentRanking()" class="text-[10px] text-slate-400 hover:text-rose-500 underline">リセット</button>
+        </div>
+        <ol id="start-ranking-list" class="text-xs space-y-1 font-semibold text-slate-600 text-left px-2">
+          <!-- JSで動的に追加 -->
+        </ol>
+      </div>
 
-      <button onclick="startGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
+      <button onclick="startGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
         スタート
       </button>
     </div>
@@ -93,26 +100,38 @@
 
       </div>
 
-      <!-- 正誤フィードバック表示 -->
-      <div id="feedback" class="h-8 text-base font-bold flex items-center justify-center"></div>
+      <!-- 正誤フィードバック表示（レイアウトズレ防止のため内部要素でアニメーション） -->
+      <div class="h-8 flex items-center justify-center overflow-hidden">
+        <div id="feedback" class="text-base font-bold"></div>
+      </div>
     </div>
 
     <!-- 結果画面 -->
-    <div id="result-screen" class="hidden my-auto space-y-6">
+    <div id="result-screen" class="hidden my-auto space-y-4 py-2">
       <div class="text-slate-500 text-sm font-semibold">クリア！</div>
       
-      <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-        <div class="text-xs text-blue-500 font-bold tracking-widest uppercase mb-1">モード</div>
-        <div id="final-mode" class="text-lg font-black text-slate-700 mb-3">目標：10</div>
+      <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100">
+        <div id="new-record-badge" class="hidden text-xs font-black text-amber-500 tracking-wider uppercase bg-amber-100 px-3 py-1 rounded-full w-fit mx-auto mb-2 animate-bounce">
+          🎉 自己ベスト更新！
+        </div>
+        <div id="final-mode" class="text-xs font-bold text-blue-500 mb-1">目標：10</div>
 
-        <div class="text-xs text-blue-500 font-bold tracking-widest uppercase mb-1">タイム</div>
-        <div id="final-time" class="text-4xl font-black text-blue-600 mb-4">0.00 秒</div>
+        <div class="text-xs text-slate-400 font-bold uppercase mb-0.5">タイム</div>
+        <div id="final-time" class="text-4xl font-black text-blue-600 mb-3">0.00 秒</div>
         
-        <div class="text-xs text-slate-400 font-bold tracking-widest uppercase mb-1">正解率</div>
-        <div id="final-score" class="text-2xl font-extrabold text-slate-700">10 / 10 問</div>
+        <div class="text-xs text-slate-400 font-bold uppercase mb-0.5">正解率</div>
+        <div id="final-score" class="text-xl font-extrabold text-slate-700">10 / 10 問</div>
       </div>
 
-      <button onclick="backToStart()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
+      <!-- 結果画面のランキング表示 -->
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100 max-w-xs mx-auto">
+        <div class="text-xs font-bold text-slate-500 mb-1.5">🏆 「<span id="result-ranking-title">10</span>」 ランキング</div>
+        <ol id="result-ranking-list" class="text-xs space-y-1 font-semibold text-slate-600 text-left px-2">
+          <!-- JSで動的に追加 -->
+        </ol>
+      </div>
+
+      <button onclick="backToStart()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition duration-200">
         もう一度遊ぶ
       </button>
     </div>
@@ -121,13 +140,13 @@
 
   <script>
     const TOTAL_QUESTIONS = 10;
-    let targetGoal = 10; // デフォルトは10
+    let targetGoal = 10;
     let currentQuestion = 1;
     let correctCount = 0;
     let centerNumber = 0;
     let targetValues = {};
     let correctAnswerPosition = '';
-    let isAnswering = false; // 連打防止フラグ
+    let isAnswering = false;
     
     let startTime = 0;
     let timerInterval = null;
@@ -141,15 +160,17 @@
     const progressBar = document.getElementById('progress-bar');
     const timerElem = document.getElementById('timer');
     const feedbackElem = document.getElementById('feedback');
-    const displayTargetNum = document.getElementById('display-target-num');
     const gameTargetBadge = document.getElementById('game-target-badge');
+
+    // 初期化ロード
+    window.addEventListener('DOMContentLoaded', () => {
+      updateRankingDisplay();
+    });
 
     // 目標の数値を選択
     function selectTarget(num) {
       targetGoal = num;
-      displayTargetNum.textContent = num;
       
-      // ボタンのスタイル更新
       document.querySelectorAll('.target-btn').forEach(btn => {
         btn.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600', 'font-black');
         btn.classList.add('border-slate-200', 'text-slate-600', 'font-bold');
@@ -158,6 +179,8 @@
       const selectedBtn = document.getElementById(`btn-${num}`);
       selectedBtn.classList.remove('border-slate-200', 'text-slate-600', 'font-bold');
       selectedBtn.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-600', 'font-black');
+
+      updateRankingDisplay();
     }
 
     // ゲーム開始
@@ -182,6 +205,7 @@
     function backToStart() {
       resultScreen.classList.add('hidden');
       startScreen.classList.remove('hidden');
+      updateRankingDisplay();
     }
 
     // タイマー更新
@@ -199,28 +223,22 @@
 
       isAnswering = false;
       feedbackElem.textContent = '';
+      feedbackElem.className = 'text-base font-bold';
       questionNum.textContent = currentQuestion;
       progressBar.style.width = `${(currentQuestion / TOTAL_QUESTIONS) * 100}%`;
 
-      // 目標数値に応じて中央の数字を生成
       generateNumbersForTarget(targetGoal);
 
-      // 正解の数字
       const correctVal = targetGoal - centerNumber;
-
-      // 3つの位置 ['top', 'bottom-left', 'bottom-right']
       const positions = ['top', 'bottom-left', 'bottom-right'];
       correctAnswerPosition = positions[Math.floor(Math.random() * positions.length)];
 
-      // ダミー数値候補の作成（正解以外の値）
       let dummyCandidates = [];
       if (targetGoal === 90) {
-        // 90モード: 5刻みのダミー値
         for (let i = 5; i < 90; i += 5) {
           if (i !== correctVal) dummyCandidates.push(i);
         }
       } else {
-        // 10, 60, 100モード: 1刻みのダミー値
         for (let i = 1; i < targetGoal; i++) {
           if (i !== correctVal) dummyCandidates.push(i);
         }
@@ -245,15 +263,12 @@
       });
     }
 
-    // 目標値に応じた中央の数字をセット
     function generateNumbersForTarget(goal) {
       if (goal === 90) {
-        // 90モード: 5〜85（5刻み）
         const stepCount = (85 / 5);
         const randIndex = Math.floor(Math.random() * stepCount) + 1;
         centerNumber = randIndex * 5;
       } else {
-        // 10, 60, 100モード: 1〜(goal - 1)の1刻み
         centerNumber = Math.floor(Math.random() * (goal - 1)) + 1;
       }
       centerVal.textContent = centerNumber;
@@ -261,7 +276,7 @@
 
     // タップ回答処理
     function handleTap(chosenPosition) {
-      if (isAnswering) return; // 回答アニメーション中の重複タップ防止
+      if (isAnswering) return;
       isAnswering = true;
 
       const chosenVal = targetValues[chosenPosition];
@@ -269,34 +284,102 @@
 
       if (isCorrect) {
         correctCount++;
-        feedbackElem.className = "h-8 text-base font-bold flex items-center justify-center text-emerald-500 animate-bounce";
+        feedbackElem.className = "text-base font-bold text-emerald-500 animate-pulse";
         feedbackElem.textContent = "◯ せいかい！";
       } else {
-        feedbackElem.className = "h-8 text-base font-bold flex items-center justify-center text-rose-500";
+        feedbackElem.className = "text-base font-bold text-rose-500";
         feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} = ${centerNumber + chosenVal})`;
       }
 
-      // 次の問題へ移行する待ち時間を少し短縮 (700ms -> 450ms) してテンポアップ
       setTimeout(() => {
         currentQuestion++;
         nextQuestion();
       }, 450);
     }
 
-    // ゲーム終了
+    // ゲーム終了処理＆ランキング更新
     function endGame() {
       clearInterval(timerInterval);
-      const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+      const totalTimeNum = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
 
       gameScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
 
       document.getElementById('final-mode').textContent = `目標：${targetGoal}`;
-      document.getElementById('final-time').textContent = `${totalTime} 秒`;
+      document.getElementById('final-time').textContent = `${totalTimeNum.toFixed(2)} 秒`;
       document.getElementById('final-score').textContent = `${correctCount} / ${TOTAL_QUESTIONS} 問`;
+
+      // 全問正解時のみランキング保存
+      let isNewRecord = false;
+      if (correctCount === TOTAL_QUESTIONS) {
+        isNewRecord = saveScore(targetGoal, totalTimeNum);
+      }
+
+      const newRecordBadge = document.getElementById('new-record-badge');
+      if (isNewRecord) {
+        newRecordBadge.classList.remove('hidden');
+      } else {
+        newRecordBadge.classList.add('hidden');
+      }
+
+      updateRankingDisplay();
     }
 
-    // 配列シャッフル関数
+    /* --- ランキング機能 (LocalStorage) --- */
+    function getScores(goal) {
+      const data = localStorage.getItem(`make_n_scores_${goal}`);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function saveScore(goal, time) {
+      let scores = getScores(goal);
+      const prevBest = scores.length > 0 ? scores[0] : null;
+
+      scores.push(time);
+      scores.sort((a, b) => a - b);
+      scores = scores.slice(0, 3); // TOP 3まで保存
+
+      localStorage.setItem(`make_n_scores_${goal}`, JSON.stringify(scores));
+
+      // 自己ベスト更新判定（1位かつ過去の記録より速い場合）
+      return scores[0] === time && (!prevBest || time < prevBest);
+    }
+
+    function updateRankingDisplay() {
+      document.getElementById('ranking-mode-title').textContent = targetGoal;
+      document.getElementById('result-ranking-title').textContent = targetGoal;
+
+      const scores = getScores(targetGoal);
+
+      const renderList = (elemId) => {
+        const listElem = document.getElementById(elemId);
+        listElem.innerHTML = '';
+
+        if (scores.length === 0) {
+          listElem.innerHTML = '<li class="text-slate-400 font-normal italic">記録がまだありません</li>';
+          return;
+        }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        scores.forEach((sc, idx) => {
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center';
+          li.innerHTML = `<span>${medals[idx]} ${idx + 1}位</span> <span class="font-mono text-slate-800">${sc.toFixed(2)} 秒</span>`;
+          listElem.appendChild(li);
+        });
+      };
+
+      renderList('start-ranking-list');
+      renderList('result-ranking-list');
+    }
+
+    function resetCurrentRanking() {
+      if (confirm(`「${targetGoal}」モードのベストタイム記録をリセットしますか？`)) {
+        localStorage.removeItem(`make_n_scores_${targetGoal}`);
+        updateRankingDisplay();
+      }
+    }
+
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
