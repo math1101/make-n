@@ -14,12 +14,20 @@
       -webkit-user-select: none;
     }
     .tap-target {
-      transition: all 0.15s ease;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
       cursor: pointer;
     }
     .tap-target:active {
-      transform: scale(0.92);
+      transform: scale(0.92) translate(-50%, 0) !important; /* 上ボタンの位置ずれ防止 */
       background-color: #e0f2fe;
+    }
+    /* 上ボタンのセンタリング維持 */
+    .target-top {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .target-top:active {
+      transform: translateX(-50%) scale(0.92);
     }
   </style>
 </head>
@@ -64,22 +72,24 @@
     </div>
 
     <!-- ゲーム画面 -->
-    <div id="game-screen" class="hidden my-auto flex-1 flex flex-col justify-between py-2">
+    <div id="game-screen" class="hidden my-auto flex-1 flex flex-col justify-between py-2 relative">
       <!-- スコア＆進捗バー -->
-      <div class="w-full bg-slate-100 rounded-full h-3 mb-3 overflow-hidden">
-        <div id="progress-bar" class="bg-blue-500 h-3 rounded-full transition-all duration-300" style="width: 10%"></div>
-      </div>
-      
-      <div class="flex justify-between items-center text-sm font-semibold text-slate-500 px-2 mb-2">
-        <span>目標: <strong id="game-target-badge" class="text-blue-600 text-base">10</strong> | 問題: <strong id="question-num" class="text-blue-600 text-base">1</strong> / 10</span>
-        <span id="timer">0.0 秒</span>
+      <div>
+        <div class="w-full bg-slate-100 rounded-full h-3 mb-3 overflow-hidden">
+          <div id="progress-bar" class="bg-blue-500 h-3 rounded-full transition-all duration-300" style="width: 10%"></div>
+        </div>
+        
+        <div class="flex justify-between items-center text-sm font-semibold text-slate-500 px-2">
+          <span>目標: <strong id="game-target-badge" class="text-blue-600 text-base">10</strong> | 問題: <strong id="question-num" class="text-blue-600 text-base">1</strong> / 10</span>
+          <span id="timer">0.0 秒</span>
+        </div>
       </div>
 
-      <!-- フィールド（3箇所のタップターゲットと中央の数字） -->
-      <div class="relative w-72 h-72 mx-auto flex items-center justify-center my-auto">
+      <!-- フィールド（レイアウト固定） -->
+      <div class="relative w-72 h-72 mx-auto my-auto flex-shrink-0">
         
-        <!-- 上（TOP）ターゲット -->
-        <button onclick="handleTap('top')" data-position="top" class="tap-target absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
+        <!-- 上（TOP）ターゲット：クラス target-top で位置固定 -->
+        <button onclick="handleTap('top')" data-position="top" class="tap-target target-top absolute top-0 w-20 h-20 rounded-2xl border-4 border-blue-200 bg-slate-50 hover:bg-blue-50 flex items-center justify-center text-2xl font-extrabold text-slate-700 shadow-md">
           <span class="target-val">?</span>
         </button>
 
@@ -94,15 +104,15 @@
         </button>
 
         <!-- 中央の数字（表示のみ） -->
-        <div id="center-node" class="absolute w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
+        <div id="center-node" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-xl z-20">
           <span id="center-val">?</span>
         </div>
 
       </div>
 
-      <!-- 正誤フィードバック表示（レイアウトズレ防止のため内部要素でアニメーション） -->
-      <div class="h-8 flex items-center justify-center overflow-hidden">
-        <div id="feedback" class="text-base font-bold"></div>
+      <!-- 正誤フィードバック表示（絶対配置にしてレイアウト影響を排除） -->
+      <div class="h-8 relative w-full flex items-center justify-center">
+        <div id="feedback" class="absolute inset-0 flex items-center justify-center text-base font-bold"></div>
       </div>
     </div>
 
@@ -111,7 +121,7 @@
       <div class="text-slate-500 text-sm font-semibold">クリア！</div>
       
       <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100">
-        <div id="new-record-badge" class="hidden text-xs font-black text-amber-500 tracking-wider uppercase bg-amber-100 px-3 py-1 rounded-full w-fit mx-auto mb-2 animate-bounce">
+        <div id="new-record-badge" class="hidden text-xs font-black text-amber-500 tracking-wider uppercase bg-amber-100 px-3 py-1 rounded-full w-fit mx-auto mb-2">
           🎉 自己ベスト更新！
         </div>
         <div id="final-mode" class="text-xs font-bold text-blue-500 mb-1">目標：10</div>
@@ -223,7 +233,7 @@
 
       isAnswering = false;
       feedbackElem.textContent = '';
-      feedbackElem.className = 'text-base font-bold';
+      feedbackElem.className = 'absolute inset-0 flex items-center justify-center text-base font-bold';
       questionNum.textContent = currentQuestion;
       progressBar.style.width = `${(currentQuestion / TOTAL_QUESTIONS) * 100}%`;
 
@@ -284,10 +294,10 @@
 
       if (isCorrect) {
         correctCount++;
-        feedbackElem.className = "text-base font-bold text-emerald-500 animate-pulse";
+        feedbackElem.className = "absolute inset-0 flex items-center justify-center text-base font-bold text-emerald-500";
         feedbackElem.textContent = "◯ せいかい！";
       } else {
-        feedbackElem.className = "text-base font-bold text-rose-500";
+        feedbackElem.className = "absolute inset-0 flex items-center justify-center text-base font-bold text-rose-500";
         feedbackElem.textContent = `× ざんねん (${centerNumber} + ${chosenVal} = ${centerNumber + chosenVal})`;
       }
 
@@ -309,7 +319,6 @@
       document.getElementById('final-time').textContent = `${totalTimeNum.toFixed(2)} 秒`;
       document.getElementById('final-score').textContent = `${correctCount} / ${TOTAL_QUESTIONS} 問`;
 
-      // 全問正解時のみランキング保存
       let isNewRecord = false;
       if (correctCount === TOTAL_QUESTIONS) {
         isNewRecord = saveScore(targetGoal, totalTimeNum);
@@ -337,11 +346,10 @@
 
       scores.push(time);
       scores.sort((a, b) => a - b);
-      scores = scores.slice(0, 3); // TOP 3まで保存
+      scores = scores.slice(0, 3);
 
       localStorage.setItem(`make_n_scores_${goal}`, JSON.stringify(scores));
 
-      // 自己ベスト更新判定（1位かつ過去の記録より速い場合）
       return scores[0] === time && (!prevBest || time < prevBest);
     }
 
